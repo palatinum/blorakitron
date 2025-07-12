@@ -7,8 +7,10 @@ services:
       - "8096:8096"
     volumes:
       - ./services/jellyfin/config:/config
-      - ./services/jellyfin/media:/media
+      - ./media:/media
     restart: unless-stopped
+    networks:
+      - blorakitron
   sonarr:
     image: linuxserver/sonarr
     container_name: sonarr
@@ -20,9 +22,11 @@ services:
       - TZ=${TZ}
     volumes:
       - ./services/sonarr/config:/config
-      - ./services/transmission/downloads:/downloads
-      - ./services/jellyfin/media/tv:/tv
+      - ./downloads:/downloads
+      - ./media/tv:/tv
     restart: unless-stopped
+    networks:
+      - blorakitron
   radarr:
     image: linuxserver/radarr
     container_name: radarr
@@ -34,13 +38,15 @@ services:
       - TZ=${TZ}
     volumes:
       - ./services/radarr/config:/config
-      - ./services/transmission/downloads:/downloads
-      - ./services/jellyfin/media/movies:/movies
+      - ./downloads:/downloads
+      - ./media/movies:/movies
     restart: unless-stopped
+    networks:
+      - blorakitron
   transmission:
     build:
       context: .
-      dockerfile: ./docker/DockerfileTransmission
+      dockerfile: ./.docker/DockerfileTransmission
     container_name: transmission
     ports:
       - "9091:9091"
@@ -53,10 +59,12 @@ services:
       - USER=${TRANSMISSION_USER}
       - PASS=${TRANSMISSION_PASSWORD}
     volumes:
-      - ./services/transmission/downloads:/downloads
       - ./services/transmission/config:/config
       - ./services/transmission/watch:/watch
+      - ./downloads:/downloads
     restart: unless-stopped
+    networks:
+      - blorakitron
   jackett:
     image: linuxserver/jackett
     container_name: jackett
@@ -68,5 +76,34 @@ services:
       - TZ=${TZ}
     volumes:
       - ./services/jackett/config:/config
-      - ./services/jackett/downloads:/downloads
+      - ./downloads:/downloads
     restart: unless-stopped
+    networks:
+      - blorakitron
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./services/cloudflared/config:/etc/cloudflared
+    command: tunnel --config /etc/cloudflared/config.yml run
+    networks:
+      - blorakitron
+  duckdns:
+    image: linuxserver/duckdns
+    container_name: duckdns
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - SUBDOMAINS=TZ=${DUCKDNS_SUBDOMAIN}
+      - TOKEN=${DUCKDNS_TOKEN}
+    restart: unless-stopped
+    networks:
+      - blorakitron
+networks:
+  blorakitron:
+    external: false
