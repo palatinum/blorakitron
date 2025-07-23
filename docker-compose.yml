@@ -71,8 +71,8 @@ services:
     ports:
       - "9117:9117"
     environment:
-      - PUID={PUID}
-      - PGID={PGID}
+      - PUID=${PUID}
+      - PGID=${PGID}
       - TZ=${TZ}
     volumes:
       - ./services/jackett/config:/config
@@ -80,16 +80,15 @@ services:
     restart: unless-stopped
     networks:
       - blorakitron
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflared
-    restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
     volumes:
-      - ./services/cloudflared/config:/etc/cloudflared
-    command: tunnel --config /etc/cloudflared/config.yml run
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./services/portainer/data:/data
+    restart: unless-stopped
     networks:
       - blorakitron
   duckdns:
@@ -99,11 +98,24 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - SUBDOMAINS=TZ=${DUCKDNS_SUBDOMAIN}
+      - SUBDOMAINS=${DUCKDNS_SUBDOMAIN}
       - TOKEN=${DUCKDNS_TOKEN}
+    restart: unless-stopped
+    networks:
+      - blorakitron
+  nginxproxymanager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginxproxymanager
+    ports:
+      - "443:443"
+      - "80:80"
+      - "81:81"
+    volumes:
+      - ./services/nginx/data:/data
+      - ./services/nginx/letsencrypt:/etc/letsencrypt
     restart: unless-stopped
     networks:
       - blorakitron
 networks:
   blorakitron:
-    external: false
+    external: true
