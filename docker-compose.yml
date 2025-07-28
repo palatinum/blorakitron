@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   jellyfin:
     image: jellyfin/jellyfin
@@ -9,8 +8,6 @@ services:
       - ./services/jellyfin/config:/config
       - ./media:/media
     restart: unless-stopped
-    networks:
-      - blorakitron
   sonarr:
     image: linuxserver/sonarr
     container_name: sonarr
@@ -25,8 +22,6 @@ services:
       - ./downloads:/downloads
       - ./media/tv:/tv
     restart: unless-stopped
-    networks:
-      - blorakitron
   radarr:
     image: linuxserver/radarr
     container_name: radarr
@@ -41,8 +36,6 @@ services:
       - ./downloads:/downloads
       - ./media/movies:/movies
     restart: unless-stopped
-    networks:
-      - blorakitron
   transmission:
     build:
       context: .
@@ -63,8 +56,6 @@ services:
       - ./services/transmission/watch:/watch
       - ./downloads:/downloads
     restart: unless-stopped
-    networks:
-      - blorakitron
   jackett:
     image: linuxserver/jackett
     container_name: jackett
@@ -78,8 +69,6 @@ services:
       - ./services/jackett/config:/config
       - ./downloads:/downloads
     restart: unless-stopped
-    networks:
-      - blorakitron
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
@@ -89,33 +78,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./services/portainer/data:/data
     restart: unless-stopped
-    networks:
-      - blorakitron
-  duckdns:
-    image: linuxserver/duckdns
-    container_name: duckdns
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - SUBDOMAINS=${DUCKDNS_SUBDOMAIN}
-      - TOKEN=${DUCKDNS_TOKEN}
-    restart: unless-stopped
-    networks:
-      - blorakitron
-  nginxproxymanager:
-    image: jc21/nginx-proxy-manager:latest
-    container_name: nginxproxymanager
-    ports:
-      - "443:443"
-      - "80:80"
-      - "81:81"
-    volumes:
-      - ./services/nginx/data:/data
-      - ./services/nginx/letsencrypt:/etc/letsencrypt
-    restart: unless-stopped
-    networks:
-      - blorakitron
-networks:
-  blorakitron:
-    external: true
