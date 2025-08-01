@@ -1,2 +1,6 @@
 FROM linuxserver/transmission
-RUN apk add --no-cache p7zip
+RUN apk add --no-cache p7zip jq
+COPY ../services/transmission/config/init-settings.sh /init-settings.sh
+RUN chmod +x /init-settings.sh
+
+ENTRYPOINT ["/init-settings.sh"]

@@ -52,8 +52,8 @@ services:
       - USER=${TRANSMISSION_USER}
       - PASS=${TRANSMISSION_PASSWORD}
     volumes:
-      - ./services/transmission/config:/config
       - ./services/transmission/watch:/watch
+      - ./services/transmission/config:/config
       - ./downloads:/downloads
     restart: unless-stopped
   jackett:
